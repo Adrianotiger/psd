@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+  <head>
+    <title>TODO supply a title</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="gears.js" ></script>
+  </head>
+  <body style='text-align:center;'>
+    <canvas id="gears" height="500" width="400" style="float:right;">
+    </canvas>
+    
+    <canvas id="psd" height="400" width="400" style="float:left;">
+    </canvas>
+    
+    <h1>PSD</h1>
+    <div style='position:relative;display:inline-block;margin:0 auto;border-style:solid;border-width:0px;border-color:black;width:410px;height:300px;'>
+      <div style='display:block;width:10px;height:300px;background-color:black;left:50px;position:absolute;'>
+      </div>
+      
+      <div style='display:block;width:10px;height:130px;background-color:black;left:200px;top:20px;position:absolute;'>
+      </div>
+      
+      <div style='display:block;width:10px;height:300px;background-color:black;left:350px;position:absolute;'>
+      </div>
+      
+      <div style='display:block;width:300px;height:1px;background-color:black;left:50px;top:150px;position:absolute;'>
+      </div>
+      
+      <div style='display:inline-block;width:50px;height:20px;left:0px;top:0px;position:absolute;'>MG1</div>
+      <div style='display:inline-block;width:50px;height:20px;right:0px;top:0px;position:absolute;'>MG2</div>
+      <div style='display:inline-block;width:50px;height:20px;left:180px;top:0px;position:absolute;'>ICE</div>
+      <div style='display:inline-block;width:50px;height:20px;left:16px;top:142px;position:absolute;'>0</div>
+    </div>
+    
+    <div style='position:relative;display:inline-block;margin:0 auto;border-style:solid;border-width:1px;border-color:black;width:410px;height:300px;'>
+      <table>
+        <tr><td>RPM ICE</td><td><input type='range' min='0' max='5200' value='0' id='rpmice' onchange='updateRPM();'></td></tr>
+        <tr><td>Speed</td><td><input type='range' min='0' max='300' value='0' id='speed' onchange='updateRPM();'></td></tr>
+        <tr><td>RPM MG2</td><td><input type='number' value='0' id='rpmmg2'></td></tr>
+        <tr><td>RPM MG1</td><td><input type='number' value='0' id='rpmmg1'></td></tr>
+      </table>
+      
+    </div>
+  </body>
+</html>
