@@ -4,9 +4,216 @@
  * and open the template in the editor.
  */
 
+/* global psd */
 
-var canvas_sch;
-var ctx;
+class PlanetaryAnimation
+{
+  constructor(ctx)
+  {
+    this.ctx = ctx;
+    
+    this.cx = ctx.canvas.width * 0.5;
+    this.cy = ctx.canvas.height * 0.5;
+    
+    angle1 = 0.05;
+    
+    this.ring = [];
+    this.ring.OX = ctx.canvas.width * 0.4;
+    this.ring.O = this.ring.OX - 10;
+    this.ring.I = this.ring.O - 10;
+    this.ring.tooths = psd.gears.ringInside;
+    this.ring.toothAngle = Math.PI / this.ring.tooths;
+    this.ring.TaperO = this.ring.toothAngle * 30 * 0.005; // inner taper offset (100% = half notch)
+    this.ring.TaperI = this.ring.toothAngle * 50 * 0.005; // inner taper offset (100% = half notch)
+    this.ring.speed = 0;
+    this.ring.angle = 0.04;
+    
+    this.planets = [];
+    this.planets.O = this.ring.I * 0.33;
+    this.planets.I = this.planets.O - 10;
+    this.planets.tooths = psd.gears.planetary;
+    this.planets.toothAngle = Math.PI / this.planets.tooths;
+    this.planets.TaperO = this.planets.toothAngle * 50 * 0.005; // inner taper offset (100% = half notch)
+    this.planets.TaperI = this.planets.toothAngle * 30 * 0.005; // inner taper offset (100% = half notch)
+    this.planets.speed = 0;
+    this.planets.angle = 0;
+    this.planets.offsets = [-0.07,0.12,0.08,0.0];
+    
+    this.engine = [];
+    this.engine.speed = 0;
+    this.engine.angle = 0;
+    this.engine.radius = this.ring.O - this.planets.O - 3;
+    
+    this.sun = [];
+    this.sun.O = this.engine.radius - this.planets.I - 3;
+    this.sun.I = this.sun.O - 10;
+    this.sun.tooths = psd.gears.sun;
+    this.sun.toothAngle = Math.PI / this.sun.tooths;
+    this.sun.TaperO = this.sun.toothAngle * 60 * 0.005; // inner taper offset (100% = half notch)
+    this.sun.TaperI = this.sun.toothAngle * 30 * 0.005; // inner taper offset (100% = half notch)
+    this.sun.speed = 0;
+    this.sun.angle = 0;
+    
+    
+    this.ani = setInterval(()=>{this.step();}, 33);
+  }
+  
+  setMG1(mg1, mg2)
+  {
+    const slowMotionFactor = 200000.0;
+    //this.engine.speed = -ice / slowMotionFactor;
+    this.sun.speed = mg1 / slowMotionFactor;
+    this.planets.speed = -this.sun.speed * (this.sun.tooths / this.planets.tooths) - this.engine.speed * this.planets.tooths / 10.0;
+    //this.ring.speed = this.planets.speed * (this.planets.tooths / this.ring.tooths) - this.engine.speed * 0.702;
+    this.ring.speed = mg2 / slowMotionFactor / (this.planets.tooths * this.ring.tooths / 470.0);
+    //this.engine.speed = -(-this.planets.speed + this.ring.speed) / 2.0;
+  }
+  
+  step()
+  {
+    this.engine.angle += this.engine.speed;
+    this.sun.angle += this.sun.speed;
+    this.ring.angle += this.ring.speed;
+    this.planets.angle += this.planets.speed;
+    this.draw();
+  }
+  
+  draw()
+  {
+    this.drawRing();
+    this.drawPlanets();
+    this.drawSun();
+  }
+  
+  drawRing()
+  {
+    this.ctx.fillStyle = '#55a';
+    this.ctx.ellipse(this.cx, this.cy, this.ring.OX, this.ring.OX, 0, 0, Math.PI * 2);
+    this.ctx.fill();
+    
+    var c = this.ring.angle;
+    
+    this.ctx.beginPath();
+    var toggle = true;
+    for (let k=0;k<this.ring.tooths*2;k++) 
+    {
+      c += this.ring.toothAngle;
+      // draw inner to outer line
+      if (toggle) {
+          this.ctx.lineTo(this.cx + this.ring.I * Math.cos(c - this.ring.TaperI),
+                     this.cy + this.ring.I * Math.sin(c - this.ring.TaperI));
+          this.ctx.lineTo(this.cx + this.ring.O * Math.cos(c + this.ring.TaperO),
+                     this.cy + this.ring.O * Math.sin(c + this.ring.TaperO));
+      }
+      // draw outer to inner line
+      else {
+          this.ctx.lineTo(this.cx + this.ring.O * Math.cos(c - this.ring.TaperO),  // outer line
+                     this.cy + this.ring.O * Math.sin(c - this.ring.TaperO));
+          this.ctx.lineTo(this.cx + this.ring.I * Math.cos(c + this.ring.TaperI),  // inner line
+                     this.cy + this.ring.I * Math.sin(c + this.ring.TaperI));
+      }
+
+      // switch level
+      toggle = !toggle;
+    }
+    this.ctx.closePath();
+    this.ctx.fillStyle = '#eee';
+    this.ctx.fill();
+  }
+  
+  drawPlanets()
+  {
+    this.ctx.beginPath();
+    this.ctx.fillStyle = '#dd5';
+    this.ctx.ellipse(cx, cy, this.engine.radius + 5, this.engine.radius + 5, 0, 0, Math.PI * 2);
+    this.ctx.fill();
+    this.ctx.closePath();
+    this.ctx.beginPath();
+    this.ctx.fillStyle = '#eee';
+    this.ctx.ellipse(cx, cy, this.engine.radius - 5, this.engine.radius - 5, 0, 0, Math.PI * 2);
+    this.ctx.fill();
+    this.ctx.closePath();
+        
+    for(let j=0;j<4;j++)
+    {
+      cx2 = this.cx + Math.sin(j * pi2 / 4.0 + this.engine.angle) * this.engine.radius;
+      cy2 = this.cy + Math.cos(j * pi2 / 4.0 + this.engine.angle) * this.engine.radius;
+      
+      var b = this.planets.angle + this.planets.offsets[j];
+      this.ctx.beginPath();
+      var toggle = true;
+      
+      for (let k=0;k<this.planets.tooths*2;k++) 
+      {
+        b += this.planets.toothAngle;
+        // draw inner to outer line
+        if (toggle) {
+            this.ctx.lineTo(cx2 + this.planets.I * Math.cos(b - this.planets.TaperI),
+                       cy2 + this.planets.I * Math.sin(b - this.planets.TaperI));
+            this.ctx.lineTo(cx2 + this.planets.O * Math.cos(b + this.planets.TaperO),
+                       cy2 + this.planets.O * Math.sin(b + this.planets.TaperO));
+        }
+        // draw outer to inner line
+        else {
+            this.ctx.lineTo(cx2 + this.planets.O * Math.cos(b - this.planets.TaperO),  // outer line
+                       cy2 + this.planets.O * Math.sin(b - this.planets.TaperO));
+            this.ctx.lineTo(cx2 + this.planets.I * Math.cos(b + this.planets.TaperI),  // inner line
+                       cy2 + this.planets.I * Math.sin(b + this.planets.TaperI));
+        }
+        toggle = !toggle;
+      }
+      
+      this.ctx.closePath();
+      this.ctx.fillStyle = '#f88';
+      this.ctx.fill();
+    }
+  }
+  
+  drawSun()
+  {
+    var toggle = true;
+    var a = this.sun.angle;
+    this.ctx.beginPath();
+    for (let k=0;k<this.sun.tooths*2;k++) 
+    {
+      a += this.sun.toothAngle;
+      // draw inner to outer line
+      if (toggle) {
+          this.ctx.lineTo(this.cx + this.sun.I * Math.cos(a - this.sun.TaperI),
+                     this.cy + this.sun.I * Math.sin(a - this.sun.TaperI));
+          this.ctx.lineTo(this.cx + this.sun.O * Math.cos(a + this.sun.TaperO),
+                     this.cy + this.sun.O * Math.sin(a + this.sun.TaperO));
+      }
+      // draw outer to inner line
+      else {
+          this.ctx.lineTo(this.cx + this.sun.O * Math.cos(a - this.sun.TaperO),  // outer line
+                     this.cy + this.sun.O * Math.sin(a - this.sun.TaperO));
+          this.ctx.lineTo(this.cx + this.sun.I * Math.cos(a + this.sun.TaperI),  // inner line
+                     this.cy + this.sun.I * Math.sin(a + this.sun.TaperI));
+      }
+
+      // switch level
+      toggle = !toggle;
+    }
+
+    this.ctx.closePath();
+    this.ctx.fillStyle = '#aaf';
+    this.ctx.fill();
+  }
+};
+
+var planetary = null;
+
+
+
+window.addEventListener("load", ()=>{
+  var canvas = document.getElementById("planetary");
+  var ctx = canvas.getContext("2d");  
+  planetary = new PlanetaryAnimation(ctx);
+});
+
+
+
 var canvas_psd;
 var ctx2;
 var car;
@@ -22,254 +229,12 @@ var zahnrad_g = 73;
 var reifen = 1.94;
 var rpm2kw = ((1.0 / 60) / 1000) * Math.PI * 2;
 
+setTimeout(()=>{init2();}, 300);
 
-class Rect
+function init2()
 {
-  constructor(x,y,w,h,color,text)
-  {
-    this.width = w;
-    this.height = h;
-    this.x = x;
-    this.y = y;
-    this.color = color;
-    this.text = text;
-  }
-  
-  draw()
-  {
-    var grd = ctx.createLinearGradient(this.x, 0, this.x + this.width, 0);
-    grd.addColorStop(0, this.color);
-    grd.addColorStop(0.5, "#ddd");
-    grd.addColorStop(1, this.color);
-    // Fill with gradient
-    ctx.fillStyle = grd;
-    ctx.fillRect(this.x, this.y, this.width, this.height);
-
-    ctx.font = "20px Arial";
-    ctx.textAlign = "center";
-    ctx.baseLine = "middle";
-    ctx.strokeText(this.text, this.x + this.width/2, this.y + this.height/2 + 6);
-  }
-  
-  drawDirectConnect(rect2)
-  {
-    if(rect2.x >= this.x + this.width)
-    {
-      
-    }
-    else if(rect2.x + rect2.width <= this.x)
-    {
-      
-    }
-    else if(rect2.y > this.y + this.height)
-    {
-      ctx.beginPath();
-      ctx.moveTo(this.x + this.width /2, this.y + this.height);
-      ctx.lineTo(rect2.x + rect2.width / 2, rect2.y);
-      ctx.stroke();
-    }
-    else if(rect2.y + rect2.height <= this.y)
-    {
-      ctx.beginPath();
-      ctx.moveTo(this.x + this.width /2, this.y);
-      ctx.lineTo(rect2.x + rect2.width / 2, rect2.y + rect2.height);
-      ctx.stroke();
-    }
-  }
-};
-
-class Axis
-{
-  constructor(leftObj)
-  {
-    this.STEP = 30;
-    this.height = this.STEP * 2;
-    
-    this.x = leftObj.x + 80;
-    if(!isNaN(leftObj.width)) this.x += leftObj.width;
-    this.y = leftObj.y - this.STEP;
-    if(!isNaN(leftObj.height)) this.y += leftObj.height / 2;
-    this.connections = [];
-    this.gears = [];
-  }
-  
-  setFirstObj(obj)
-  {
-    this.y = obj.y - this.STEP;
-    if(!isNaN(obj.height)) this.y += obj.height / 2;
-  }
-  
-  addConnection(conn)
-  {
-    this.gears.push(0);
-    this.connections.push(conn);
-    this.height += this.STEP;
-  }
-  
-  addGear(tooths)
-  {
-    this.gears.push(tooths);
-    this.height -= 7;
-  }
-  
-  draw()
-  {
-    var conns = 0;
-    var gears = 0;
-    var y = this.y + this.STEP;
-    ctx.beginPath();
-    ctx.moveTo(this.x, this.y);
-    ctx.lineTo(this.x, y);
-    ctx.moveTo(this.x-10, this.y);
-    ctx.lineTo(this.x+10, this.y);
-    ctx.stroke();
-    for(var k=0;k<this.gears.length;k++)
-    {
-      var drawLine = false;
-      if(this.gears[k] === 0)
-      {
-        this.drawDirectConnect(this.x, y, this.connections[conns++]);
-        drawLine = true;
-      }
-      else
-      {
-        this.drawGear(this.x, (gears%2) ? y -1 : y + 2, this.gears[k], (gears % 2)===0);
-        gears++;
-        if((gears%2) === 0)
-        {
-          drawLine = true;
-          y += 2;
-        }
-      }
-      if(drawLine)
-      {
-        ctx.beginPath();
-        ctx.moveTo(this.x, y);
-        y+=this.STEP;
-        ctx.lineTo(this.x, y);
-        ctx.stroke();
-      }
-    }
-    ctx.beginPath();
-    ctx.moveTo(this.x-10, y);
-    ctx.lineTo(this.x+10, y);
-    ctx.stroke();
-  }
-  
-  drawDirectConnect(x, y, rect2)
-  {
-    if(isNaN(rect2.width)) rect2.width = 1;
-    if(isNaN(rect2.height)) rect2.height = 1;
-    
-    if(rect2.x >= x)
-    {
-      ctx.beginPath();
-      ctx.moveTo(x, y);
-      ctx.lineTo(rect2.x, rect2.y + rect2.height / 2);
-      ctx.stroke();
-    }
-    else if(rect2.x + rect2.width <= x)
-    {
-      ctx.beginPath();
-      ctx.moveTo(x, y);
-      if(rect2.y + rect2.height / 2 > y)
-      {
-        ctx.lineTo(x - (x - rect2.x - rect2.width) / 2 - Math.abs(y - rect2.y - rect2.height/2) / 3, y);
-        ctx.lineTo(x - (x - rect2.x - rect2.width) / 2 - Math.abs(y - rect2.y - rect2.height/2) / 3, rect2.y + rect2.height / 2);
-      }
-      if(rect2.y + rect2.height / 2 < y)
-      {
-        ctx.lineTo(x - (x - rect2.x - rect2.width) / 2 - Math.abs(y - rect2.y - rect2.height/2) / 3, y);
-        ctx.lineTo(x - (x - rect2.x - rect2.width) / 2 - Math.abs(y - rect2.y - rect2.height/2) / 3, rect2.y + rect2.height / 2);
-      }
-      ctx.lineTo(rect2.x + rect2.width, rect2.y + rect2.height / 2);
-      ctx.stroke();
-    }
-  }
-  
-  drawGear(x,y,tooths, isTop)
-  {
-    ctx.beginPath();
-    ctx.moveTo(x-10, y);
-    ctx.lineTo(x+10, y);
-    ctx.stroke();
-    
-    if(tooths > 1)
-    {
-      ctx.font = '15px serif';
-      ctx.fillText(tooths + "t", x-20, isTop ? y - 8 : y + 13);
-    }
-  }
-};
-
-class Car
-{
-  constructor()
-  {
-    this.wheels = [];
-    this.wheels[0] = new Rect(10,10,80,30, "#aaa", "Wheel");
-    this.wheels[1] = new Rect(10,150,80,30, "#aaa", "Wheel");
-    this.diff = new Rect(10,70,80,40, "#666", "Diff");
-    this.axis = [];
-    this.axis[0] = new Axis(this.diff);
-    this.axis[0].addConnection(this.diff);
-    this.axis[0].addGear(73);
-    this.axis[0].addGear(21);
-    this.axis[1] = new Axis(this.axis[0]);
-    this.mg1 = new Rect(300, 308, 80, 60, "#aaf", "MG1");
-    this.mg2 = new Rect(300, 60, 80, 60, "#55a", "MG2");
-    this.ice = new Rect(20, 308, 80, 60, "#dd6", "ICE");
-    this.axis[1].addConnection(this.mg2);
-    this.axis[1].setFirstObj(this.mg2);
-    this.axis[1].addGear(17);
-    this.axis[1].addGear(1);
-    this.axis[1].addConnection(this.axis[1]);
-    this.axis[0].addConnection(this.axis[1]);
-    this.axis[1].addGear(53);
-    this.axis[1].addGear(65);
-    this.axis[1].addConnection(this.ice);
-    this.axis[1].addGear(78);
-    this.axis[1].addGear(23);
-    this.axis[1].addConnection(this.ice);
-    this.axis[1].addGear(1);
-    this.axis[1].addGear(30);
-    this.axis[1].addConnection(this.mg1);
-    this.axis[1].addGear(1);
-    this.axis[1].addGear(1);
-    this.axis[1].addConnection(this.ice);
-    this.axis[1].addGear(1);
-    this.axis[1].addGear(1);
-    this.axis[1].addConnection(this.ice);
-  }
-  
-  draw()
-  {
-    this.wheels[0].draw();
-    this.wheels[1].draw();
-    this.mg1.draw();
-    this.mg2.draw();
-    this.ice.draw();
-    this.diff.draw();
-    this.diff.drawDirectConnect(this.wheels[0]);
-    this.diff.drawDirectConnect(this.wheels[1]);
-    for(var k=0;k<this.axis.length;k++)
-    {
-      this.axis[k].draw();
-    }
-  }
-};
-
-setTimeout(()=>{init();}, 300);
-
-function init()
-{
-  canvas_sch = document.getElementById("gears"); 
-  canvas_psd = document.getElementById("psd"); 
-  ctx = canvas_sch.getContext("2d");
+  canvas_psd = document.getElementById("planetary"); 
   ctx2 = canvas_psd.getContext("2d");
-  
-  car = new Car();
-  car.draw();
   
   setInterval(()=>{rotateGears();}, 200);
 }
@@ -312,6 +277,7 @@ var cx      = 200,                    // center x
     
 function rotateGears()
 {
+  return;
   //sonnenrad  
   a+=speed;
   b-=speed * (sonnenrad / zahnrad_k);
@@ -360,7 +326,6 @@ function rotateGears()
   ctx2.fillStyle = '#eee';
   ctx2.ellipse(cx, cy, radius2 - 5, radius2 - 5, 0, 0, Math.PI * 2);
   ctx2.fill();
-  
   ctx2.closePath();
   
   ctx2.beginPath();
@@ -432,25 +397,5 @@ function rotateGears()
     ctx2.fillStyle = '#f88';
     ctx2.fill();
   }
-  
-
 }
 
-
-function updateRPM()
-{
-  var rpmice = document.getElementById("rpmice").value;
-  var speed = document.getElementById("speed").value;
-  
-  var rpm_wheels = ((speed / 3.6) / reifen) * 60;
-  var rpm_diff = (zahnrad_g / zwischenrad_k) * rpm_wheels;
-  var rpm_hohl = (zwischenrad_g / hohlrad_a) * rpm_diff;
-  
-  var ioPlanetar = - hohlrad_i / sonnenrad;
-  var rpm_mg1 = ioPlanetar * rpm_hohl + (1 - ioPlanetar) * rpmice;
-  var rpm_mg2 = rpm_diff * (zwischenrad_g / zahnrad_k);
-  
-  document.getElementById("rpmmg1").value = parseInt(rpm_mg1);
-  document.getElementById("rpmmg2").value = parseInt(rpm_mg2);
-  
-}
