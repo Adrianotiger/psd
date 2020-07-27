@@ -1,5 +1,6 @@
-# PSD (Power Split Device) - Simulator
-###[Start Online Simulator](https://adrianotiger.github.io/psd/)
+# PSD (Power Split Device) - Simulator  
+
+### [Start Online Simulator](https://adrianotiger.github.io/psd/)
 ![planetary gears](screenshot.png)
 Simple simulator of the planetary gear of the Toyota Hybrid cars.  
 Change speed and the ICE rpm to see how the 2 electric motors will compensate on the Prius IV.
