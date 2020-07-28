@@ -214,12 +214,12 @@ function make_gear(number_of_teeth, internal, color) {
     group.appendChild(gear1);
     group.appendChild(axle1);
   }
-
+/*
   var mark = document.createElementNS("http://www.w3.org/2000/svg", "circle");
   mark.setAttribute("r", 2);
   mark.setAttribute("fill", "#000000");
   mark.setAttribute("transform", "rotate(90) translate(" + mark_radius + ")");
-  group.appendChild(mark);
+  group.appendChild(mark);*/
 
   group.changeTeeth = function(new_teeth) {
     gear1.setAttribute("points", build_gear(new_teeth).toString());
